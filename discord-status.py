@@ -122,7 +122,7 @@ class discord_status (GObject.Object, Peas.Activatable):
     if self.playing_date - elapsed == self.start_date:
       return
     else:
-      if sp.get_playing_entry() and self.is_playing:
+      if sp.get_playing_entry() and self.is_playing and not elapsed == 0:
         self.playing_date = self.start_date + elapsed
         info = self.get_info(sp)
         album = info[0]
