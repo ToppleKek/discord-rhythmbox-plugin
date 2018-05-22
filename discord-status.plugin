@@ -1,0 +1,9 @@
+[Plugin]
+Loader=python3
+Module=discord-status
+IAge=2
+Name=Discord Status
+Description=A plugin to update your rich presence in Discord
+Authors=TopKek#9999 (Discord) braebear85@gmail.com
+Copyright=Copyright © 2018 TopKek
+Website=http://vps.moviefree.faith/
