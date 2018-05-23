@@ -118,7 +118,10 @@ class discord_status (GObject.Object, Peas.Activatable):
 
   def elapsed_changed(self, sp, elapsed):
     print("[DEBUG] ELAPSED: %s" %(elapsed))
-    self.playing_date += 1
+    if not self.playing_date or not self.is_playing:
+      return
+    else:
+      self.playing_date += 1
     if self.playing_date - elapsed == self.start_date:
       return
     else:
