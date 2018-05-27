@@ -1,4 +1,3 @@
-import rb
 import gi
 import time
 import os
@@ -6,7 +5,7 @@ from gi.repository import Gio, GLib, GObject, Peas
 from gi.repository import RB
 from pypresence import Presence
 
-class discord_status (GObject.Object, Peas.Activatable):
+class discord_status_dev (GObject.Object, Peas.Activatable):
   RPC = Presence('415207119642689544')
   RPC.connect()
   __gtype_name__ = 'DiscordStatusPlugin'
@@ -27,7 +26,7 @@ class discord_status (GObject.Object, Peas.Activatable):
     self.ec_id   = sp.connect ('elapsed-changed',
                                self.elapsed_changed)
 
-    self.RPC.update(state="Playback Stopped", details="Rhythmbox Status Plugin", large_image="rhythmbox", small_image="stop", small_text="Stopped")
+    self.RPC.update(state="Playback Stopped", details="Rhythmbox Status Plugin Dev", large_image="rhythmbox", small_image="stop", small_text="Stopped")
 
   def do_deactivate(self):
     shell = self.object
