@@ -5,6 +5,12 @@ This is based off of the built-in im-status plugin and has some borrowed code; c
 ## Usage
 - Install `pypresence`:
 
+On systems that use python2 and 3:
+
+`pip3 install pypresence`
+
+Or if not:
+ 
 `pip install pypresence`
 (You can try it with sudo if it does not work)
 
@@ -16,3 +22,4 @@ This is based off of the built-in im-status plugin and has some borrowed code; c
 
 - Enable the plugin
 
+Note: Make sure that discord is open when you enable the plugin.
