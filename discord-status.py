@@ -1,13 +1,58 @@
 import gi
 import time
 import os
+gi.require_version('Notify', '0.7')
+gi.require_version('Gtk', '3.0')
+from gi.repository import Notify, Gtk
 from gi.repository import Gio, GLib, GObject, Peas
 from gi.repository import RB
 from pypresence import Presence
 
 class discord_status_dev (GObject.Object, Peas.Activatable):
-  RPC = Presence('415207119642689544')
-  RPC.connect()
+  Notify.init("Rhythmbox")
+  RPC = Presence("415207119642689544")
+  connected = False
+  gave_up = False
+  try:
+    RPC.connect()
+    Notify.Notification.new("Rhythmbox Discord Status Plugin", "Connected to Discord").show()
+    Notify.uninit()
+    connected = True
+  except ConnectionRefusedError:
+    Notify.Notification.new("Rhythmbox Discord Status Plugin", "Failed to connect to discord: ConnectionRefused. Is discord open?").show()
+    Notify.uninit()
+    while not connected and not gave_up:
+      dialog = Gtk.Dialog(title = "Discord Rhythmbox Status Plugin",
+                          parent = None,
+                          buttons = (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                                     Gtk.STOCK_OK, Gtk.ResponseType.OK)
+                         )
+
+      hbox = Gtk.HBox()
+
+      label = Gtk.Label("\nFailed to connect to the discord client. Make sure that discord is open. Retry?\n")
+      hbox.pack_start(label, True, True, 0)
+
+      dialog.vbox.pack_start(hbox, True, True, 0)
+      dialog.vbox.show_all()
+
+      response = dialog.run()
+
+      if (response == Gtk.ResponseType.OK):
+        try:
+          RPC.connect()
+          connected = True
+        except ConnectionRefusedError:
+          print('Failed to retry connection to discord')
+
+      elif (response == Gtk.ResponseType.CANCEL):
+        gave_up = True
+        dialog.destroy()
+
+      else:
+        pass
+
+      dialog.destroy()
   __gtype_name__ = 'DiscordStatusPlugin'
   object = GObject.property(type=GObject.Object)
   start_date = None
@@ -26,7 +71,7 @@ class discord_status_dev (GObject.Object, Peas.Activatable):
     self.ec_id   = sp.connect ('elapsed-changed',
                                self.elapsed_changed)
 
-    self.RPC.update(state="Playback Stopped", details="Rhythmbox Status Plugin Dev", large_image="rhythmbox", small_image="stop", small_text="Stopped")
+    self.RPC.update(state="Playback Stopped", details="Rhythmbox Status Plugin", large_image="rhythmbox", small_image="stop", small_text="Stopped")
 
   def do_deactivate(self):
     shell = self.object
