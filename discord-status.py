@@ -108,6 +108,9 @@ class discord_status_dev (GObject.Object, Peas.Activatable):
       else:
         duration = sp.get_playing_entry().get_ulong(RB.RhythmDBPropType.DURATION)
 
+      if len(album) < 2:
+        album = "%s​" %(album)
+        
       return [album, title, artist, duration]
 
   def playing_entry_changed(self, sp, entry):
