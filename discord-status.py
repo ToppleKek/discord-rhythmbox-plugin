@@ -9,18 +9,27 @@ from gi.repository import RB
 from pypresence import Presence
 
 class discord_status_dev (GObject.Object, Peas.Activatable):
-  Notify.init("Rhythmbox")
+  try:
+    Notify.init("Rhythmbox")
+  except:
+    print("Failed to init Notify. Is the notificaion service running?")
   RPC = Presence("415207119642689544")
   connected = False
   gave_up = False
   try:
     RPC.connect()
-    Notify.Notification.new("Rhythmbox Discord Status Plugin", "Connected to Discord").show()
-    Notify.uninit()
+    try:
+      Notify.Notification.new("Rhythmbox Discord Status Plugin", "Connected to Discord").show()
+      Notify.uninit()
+    except:
+      print("Failed to init Notify. Is the notificaion service running?")
     connected = True
   except ConnectionRefusedError:
-    Notify.Notification.new("Rhythmbox Discord Status Plugin", "Failed to connect to discord: ConnectionRefused. Is discord open?").show()
-    Notify.uninit()
+    try:
+      Notify.Notification.new("Rhythmbox Discord Status Plugin", "Failed to connect to discord: ConnectionRefused. Is discord open?").show()
+      Notify.uninit()
+    except:
+      print("Failed to init Notify. Is the notificaion service running?")
     while not connected and not gave_up:
       dialog = Gtk.Dialog(title = "Discord Rhythmbox Status Plugin",
                           parent = None,
