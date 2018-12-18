@@ -18,7 +18,7 @@ Or if not:
 
 `git clone https://github.com/ToppleKek/discord-rhythmbox-plugin.git`
 
-- Put the `discord-rhythmbox-plugin` folder in `/usr/lib/rhythmbox/plugins`
+- Put the `discord-rhythmbox-plugin` folder in `~/.local/share/rhythmbox/plugins`
 
 - Enable the plugin
 
