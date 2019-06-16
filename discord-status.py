@@ -13,7 +13,7 @@ class discord_status_dev (GObject.Object, Peas.Activatable):
     Notify.init("Rhythmbox")
   except:
     print("Failed to init Notify. Is the notificaion service running?")
-  RPC = Presence("415207119642689544")
+  RPC = Presence("589905203533185064")
   connected = False
   gave_up = False
   try:
