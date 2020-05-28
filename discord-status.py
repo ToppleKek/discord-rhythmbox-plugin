@@ -39,8 +39,9 @@ class discord_status_dev(GObject.Object, Peas.Activatable):
         Notify.uninit()
     except:
       print("Failed to init Notify. Is the notificaion service running?")
-    while not connected and not gave_up:
-      if show_notifs:
+
+    if show_notifs:
+      while not connected and not gave_up:
         dialog = Gtk.Dialog(title = "Discord Rhythmbox Status Plugin",
                             parent = None,
                             buttons = (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
@@ -71,7 +72,7 @@ class discord_status_dev(GObject.Object, Peas.Activatable):
         else:
           pass
 
-        dialog.destroy()
+          dialog.destroy()
   __gtype_name__ = 'DiscordStatusPlugin'
   object = GObject.property(type=GObject.Object)
   start_date = None
