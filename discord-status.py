@@ -7,8 +7,15 @@ from gi.repository import Notify, Gtk
 from gi.repository import Gio, GLib, GObject, Peas
 from gi.repository import RB
 from pypresence import Presence
+from status_prefs import discord_status_prefs 
 
-class discord_status_dev (GObject.Object, Peas.Activatable):
+class discord_status_dev(GObject.Object, Peas.Activatable):
+  print("discord: starting up")
+  GObject.type_register(discord_status_prefs)
+  prefs = discord_status_prefs()
+  settings = prefs.load_settings()
+  show_notifs = settings["show_notifs"]
+
   try:
     Notify.init("Rhythmbox")
   except:
@@ -19,49 +26,52 @@ class discord_status_dev (GObject.Object, Peas.Activatable):
   try:
     RPC.connect()
     try:
-      Notify.Notification.new("Rhythmbox Discord Status Plugin", "Connected to Discord").show()
-      Notify.uninit()
+      if show_notifs:
+        Notify.Notification.new("Rhythmbox Discord Status Plugin", "Connected to Discord").show()
+        Notify.uninit()
     except:
       print("Failed to init Notify. Is the notificaion service running?")
     connected = True
   except ConnectionRefusedError:
     try:
-      Notify.Notification.new("Rhythmbox Discord Status Plugin", "Failed to connect to discord: ConnectionRefused. Is discord open?").show()
-      Notify.uninit()
+      if show_notifs:
+        Notify.Notification.new("Rhythmbox Discord Status Plugin", "Failed to connect to discord: ConnectionRefused. Is discord open?").show()
+        Notify.uninit()
     except:
       print("Failed to init Notify. Is the notificaion service running?")
     while not connected and not gave_up:
-      dialog = Gtk.Dialog(title = "Discord Rhythmbox Status Plugin",
-                          parent = None,
-                          buttons = (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-                                     Gtk.STOCK_OK, Gtk.ResponseType.OK)
-                         )
+      if show_notifs:
+        dialog = Gtk.Dialog(title = "Discord Rhythmbox Status Plugin",
+                            parent = None,
+                            buttons = (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                                       Gtk.STOCK_OK, Gtk.ResponseType.OK)
+                           )
 
-      hbox = Gtk.HBox()
+        hbox = Gtk.HBox()
 
-      label = Gtk.Label("\nFailed to connect to the discord client. Make sure that discord is open. Retry?\n")
-      hbox.pack_start(label, True, True, 0)
+        label = Gtk.Label("\nFailed to connect to the discord client. Make sure that discord is open. Retry?\n")
+        hbox.pack_start(label, True, True, 0)
 
-      dialog.vbox.pack_start(hbox, True, True, 0)
-      dialog.vbox.show_all()
+        dialog.vbox.pack_start(hbox, True, True, 0)
+        dialog.vbox.show_all()
 
-      response = dialog.run()
+        response = dialog.run()
 
-      if (response == Gtk.ResponseType.OK):
-        try:
-          RPC.connect()
-          connected = True
-        except ConnectionRefusedError:
-          print('Failed to retry connection to discord')
+        if (response == Gtk.ResponseType.OK):
+          try:
+            RPC.connect()
+            connected = True
+          except ConnectionRefusedError:
+            print('Failed to retry connection to discord')
 
-      elif (response == Gtk.ResponseType.CANCEL):
-        gave_up = True
+        elif (response == Gtk.ResponseType.CANCEL):
+          gave_up = True
+          dialog.destroy()
+
+        else:
+          pass
+
         dialog.destroy()
-
-      else:
-        pass
-
-      dialog.destroy()
   __gtype_name__ = 'DiscordStatusPlugin'
   object = GObject.property(type=GObject.Object)
   start_date = None
