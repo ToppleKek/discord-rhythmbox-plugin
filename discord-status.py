@@ -10,7 +10,6 @@ from pypresence import Presence
 from status_prefs import discord_status_prefs 
 
 class discord_status_dev(GObject.Object, Peas.Activatable):
-  print("discord: starting up")
   GObject.type_register(discord_status_prefs)
   prefs = discord_status_prefs()
   settings = prefs.load_settings()
@@ -20,9 +19,12 @@ class discord_status_dev(GObject.Object, Peas.Activatable):
     Notify.init("Rhythmbox")
   except:
     print("Failed to init Notify. Is the notificaion service running?")
+
+  is_streaming = False
   RPC = Presence("589905203533185064")
   connected = False
   gave_up = False
+  
   try:
     RPC.connect()
     try:
@@ -90,6 +92,8 @@ class discord_status_dev(GObject.Object, Peas.Activatable):
                                self.playing_changed)
     self.ec_id   = sp.connect ('elapsed-changed',
                                self.elapsed_changed)
+    self.pspc_id = sp.connect ('playing-song-property-changed',
+                               self.playing_song_property_changed)
 
     self.RPC.update(state="Playback Stopped", details="Rhythmbox Status Plugin", large_image="rhythmbox", small_image="stop", small_text="Stopped")
 
@@ -99,6 +103,7 @@ class discord_status_dev(GObject.Object, Peas.Activatable):
     sp.disconnect (self.psc_id)
     sp.disconnect (self.pc_id)
     sp.disconnect (self.ec_id)
+    sp.disconnect (self.pspc_id)
     self.RPC.clear(pid=os.getpid())
     self.RPC.close()
 
@@ -133,6 +138,17 @@ class discord_status_dev(GObject.Object, Peas.Activatable):
         
       return [album, title, artist, duration]
 
+  def playing_song_property_changed(self, sp, uri, property, old, newvalue):
+      print("playing_song_property_changed: %s %s %s %s" %(uri, property, old, newvalue))
+      
+      info = self.get_info(sp)
+      if property == "rb:stream-song-title":
+        self.is_streaming = True
+        self.update_streaming_rpc(info, newvalue)
+
+  def update_streaming_rpc(self, info, d):
+    self.RPC.update(state=info[1][0:127], details=d[0:127], large_image="rhythmbox", small_image="play", small_text="Streaming", start=int(time.time()))
+
   def playing_entry_changed(self, sp, entry):
     if sp.get_playing_entry():
       self.start_date = int(time.time())
@@ -142,6 +158,15 @@ class discord_status_dev(GObject.Object, Peas.Activatable):
       title = info[1]
       artist = info[2]
       duration = info[3]
+
+      if duration == 0 and not self.is_streaming:
+        self.update_streaming_rpc(info, "Unknown - Unknown")
+      elif duration == 0 and self.is_streaming:
+        self.update_streaming_rpc(info, "Unknown - Unknown")
+        return
+      else:
+        self.is_streaming = False
+
       details="%s - %s" %(title, artist)
       self.is_playing = True
 
@@ -149,11 +174,9 @@ class discord_status_dev(GObject.Object, Peas.Activatable):
       pos = sp.get_playing_time().time
       end_time = start_time + duration - pos
 
-      print("Updating RPC... (playing_entry_changed)")
       self.RPC.update(state=album[0:127], details=details[0:127], large_image="rhythmbox", small_image="play", small_text="Playing", start=start_time, end=end_time)
 
   def playing_changed(self, sp, playing):
-    print("Playing chaned to: %s" %(playing))
     album = None
     title = None
     artist = None
@@ -163,28 +186,31 @@ class discord_status_dev(GObject.Object, Peas.Activatable):
       title = info[1]
       artist = info[2]
       duration = info[3]
+
+      if duration == 0 and not self.is_streaming:
+        self.update_streaming_rpc(info, "Unknown - Unknown")
+      elif duration == 0:
+        return
+      else:
+        self.is_streaming = False
+
       details="%s - %s" %(title, artist)
 
       start_time = int(time.time())
       pos = sp.get_playing_time().time
       end_time = start_time + duration - pos
 
-    print("Updating RPC... (playing_changed)")
     if playing:
-      print("Playing chaned to: playing")
       self.is_playing = True
       self.RPC.update(state=album[0:127], details=details[0:127], large_image="rhythmbox", small_image="play", small_text="Playing", start=start_time, end=end_time)
     elif not playing and not sp.get_playing_entry():
-      print("Playing chaned to: stopped")
       self.is_playing = False
       self.RPC.update(state="Playback Stopped", details="Rhythmbox Status Plugin", large_image="rhythmbox", small_image="stop", small_text="Stopped")
     else:
-      print("Playing chaned to: paused")
       self.is_playing = False
       self.RPC.update(state=album[0:127], details=details[0:127], large_image="rhythmbox", small_image="pause", small_text="Paused")
 
   def elapsed_changed(self, sp, elapsed):
-    print("[DEBUG] ELAPSED: %s" %(elapsed))
     if not self.playing_date or not self.is_playing:
       return
     else:
@@ -199,11 +225,18 @@ class discord_status_dev(GObject.Object, Peas.Activatable):
         title = info[1]
         artist = info[2]
         duration = info[3]
+
+        if duration == 0 and not self.is_streaming:
+          self.update_streaming_rpc(info, "Unknown - Unknown")
+        elif duration == 0:
+          return
+        else:
+          self.is_streaming = False
+
         details="%s - %s" %(title, artist)
 
         start_time = int(time.time())
         pos = sp.get_playing_time().time
         end_time = start_time + duration - pos
 
-        print("Updating RPC... (elapsed_changed)")
         self.RPC.update(state=album[0:127], details=details[0:127], large_image="rhythmbox", small_image="play", small_text="Playing", start=start_time, end=end_time)
