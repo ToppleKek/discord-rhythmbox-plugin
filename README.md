@@ -2,6 +2,8 @@
 A simple plugin for rhythmbox to update your rich presence in discord.
 This is based off of the built-in im-status plugin and has some borrowed code; credit where credit is due!
 
+Note: This plugin does not work with Discord installed via Flatpak.
+
 ## Usage
 - Install `pypresence`:
 
