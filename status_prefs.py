@@ -3,7 +3,6 @@ from gi.repository import GObject
 from gi.repository import GLib
 from gi.repository import Gtk
 from gi.repository import Gio
-import rb
 import os
 import json
 
