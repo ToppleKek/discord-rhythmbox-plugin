@@ -1,6 +1,7 @@
 import gi
 import time
 import os
+import json
 gi.require_version('Notify', '0.7')
 gi.require_version('Gtk', '3.0')
 from gi.repository import Notify, Gtk
@@ -10,10 +11,13 @@ from pypresence import Presence
 from status_prefs import discord_status_prefs 
 
 class discord_status_dev(GObject.Object, Peas.Activatable):
-  GObject.type_register(discord_status_prefs)
-  prefs = discord_status_prefs()
-  settings = prefs.load_settings()
+  path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "settings.json")
+
+  with open(path) as file:
+    settings = json.load(file)
+
   show_notifs = settings["show_notifs"]
+  time_style = settings["time_style"]
 
   try:
     Notify.init("Rhythmbox")
@@ -172,8 +176,7 @@ class discord_status_dev(GObject.Object, Peas.Activatable):
 
       start_time = int(time.time())
       pos = sp.get_playing_time().time
-      end_time = start_time + duration - pos
-
+      end_time = (start_time + duration - pos) if self.time_style == 1 else None
       self.RPC.update(state=album[0:127], details=details[0:127], large_image="rhythmbox", small_image="play", small_text="Playing", start=start_time, end=end_time)
 
   def playing_changed(self, sp, playing):
@@ -198,7 +201,7 @@ class discord_status_dev(GObject.Object, Peas.Activatable):
 
       start_time = int(time.time())
       pos = sp.get_playing_time().time
-      end_time = start_time + duration - pos
+      end_time = (start_time + duration - pos) if self.time_style == 1 else None
 
     if playing:
       self.is_playing = True
@@ -211,7 +214,7 @@ class discord_status_dev(GObject.Object, Peas.Activatable):
       self.RPC.update(state=album[0:127], details=details[0:127], large_image="rhythmbox", small_image="pause", small_text="Paused")
 
   def elapsed_changed(self, sp, elapsed):
-    if not self.playing_date or not self.is_playing:
+    if not self.playing_date or not self.is_playing or self.time_style == 0:
       return
     else:
       self.playing_date += 1
@@ -237,6 +240,6 @@ class discord_status_dev(GObject.Object, Peas.Activatable):
 
         start_time = int(time.time())
         pos = sp.get_playing_time().time
-        end_time = start_time + duration - pos
+        end_time = (start_time + duration - pos) if self.time_style == 1 else None
 
         self.RPC.update(state=album[0:127], details=details[0:127], large_image="rhythmbox", small_image="play", small_text="Playing", start=start_time, end=end_time)
