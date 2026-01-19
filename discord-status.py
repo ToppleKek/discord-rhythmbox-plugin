@@ -5,6 +5,7 @@ import gi
 gi.require_version('Notify', '0.7')
 from gi.repository import Notify, GObject, Peas, RB
 from pypresence import Presence
+from pypresence.types import ActivityType
 from status_prefs import discord_status_prefs
 
 DEFAULT_APPID = "589905203533185064"
@@ -137,6 +138,7 @@ class DiscordStatus(GObject.Object, Peas.Activatable):
             end_time = (start_time + song_info["duration"] - pos) if self.settings["time_style"] == 1 else None
 
             self.rpc.update(
+                activity_type=ActivityType.LISTENING,
                 state=song_info["album"][0:127],
                 details=details[0:127],
                 large_image="rhythmbox",
